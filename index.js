@@ -1,6 +1,6 @@
 const endpoint = "https://todo.hackrpi.com";
 const addListElement = document.getElementById("add-list");
-
+const API_KEY = "4b07c4ccaf003eb706298571326bda19";
 
 addListElement.addEventListener("click", function(){
     addList();
@@ -12,7 +12,12 @@ const newListInputElement = document.getElementById('new-list-input');
 //Get all items from server
 async function fetchLists() {
     try {
-        const response = await fetch(endpoint+'/GetLists', {headers:{"authorization":"4b07c4ccaf003eb706298571326bda19"}});
+        const response = await fetch(endpoint+'/GetLists', {
+            headers:{
+                'authorization':API_KEY,
+                'Content-Type': 'application/json',
+            }
+        });
         const lists = await response.json();
         renderLists(lists);
     } catch (error) {
@@ -27,10 +32,13 @@ async function addList() {
         try {
             const response = await fetch(endpoint+'/AddList', {
                 method: 'POST',
-                headers:{"authorization":"4b07c4ccaf003eb706298571326bda19"},
-                body: {
-                    listName: title
+                headers:{
+                    'authorization':API_KEY,
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({
+                    listName: title
+                })
             });
             const newList = await response.json();
             renderList(newList);
@@ -44,10 +52,14 @@ async function addList() {
 //Modifies DOM and sends delete request
 async function deleteList(listIdParam) {
     try {
-    await fetch(`${endpoint}/DeleteList` + new URLSearchParams({
+    await fetch(`${endpoint}/DeleteList?` + new URLSearchParams({
         listId: listIdParam,
     }), {
         method: 'DELETE',
+        headers: {
+            'authorization':API_KEY,
+            'Content-Type': 'application/json',
+        }
     });
     const listElement = document.getElementById(`list-${listIdParam}`);
     listContainerElement.removeChild(listElement);
@@ -121,12 +133,13 @@ async function addTask(listIdParam) {
             const response = await fetch(`${endpoint}/AddListItem/`, {
             method: 'POST',
             headers: {
+                'authorization':API_KEY,
                 'Content-Type': 'application/json',
             },
-            body: {
+            body: JSON.stringify({
                 listId: listIdParam,
                 itemName: taskInput.value
-            },
+            })
             });
             const newTask = await response.json();
             // const listElement = document.getElementById(`list-${listId}`);
@@ -139,12 +152,18 @@ async function addTask(listIdParam) {
     }
 }
 
-async function updateTask(listId, taskId, completed) {
+async function renameTask(listId, newItemId, newName) {
     try {
-        await fetch(`${endpoint}/${listId}/tasks/${taskId}`, {
-            method: 'PUT',
-            headers:{"authorization":"4b07c4ccaf003eb706298571326bda19"},
-            body: JSON.stringify({ completed }),
+        await fetch(`${endpoint}/RenameItem`, {
+            method: 'PATCH',
+            headers: {
+                'authorization':API_KEY,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                itemId: newItemId,
+                newItemName: newName
+            })
         });
         const taskElement = document.getElementById(`task-${taskId}`);
         taskElement.classList.toggle('completed', completed);
@@ -153,10 +172,34 @@ async function updateTask(listId, taskId, completed) {
     }
 }
 
+async function setCheckedTask(listId, thisItemId, newChecked) {
+    try {
+        await fetch(`${endpoint}/SetChecked`, {
+            method: 'PATCH',
+            headers:{
+                'authorization':API_KEY,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                itemId: newItemId,
+                checked: newChecked
+            })
+        });
+        const taskElement = document.getElementById(`task-${newItemId}`);
+        taskElement.classList.toggle('completed', newChecked);
+    } catch (error) {
+        console.error('Error updating task:', error);
+    }
+}
+
 async function deleteTask(listId, taskId) {
     try {
-    await fetch(`/api/lists/${listId}/tasks/${taskId}`, {
+    await fetch(`${endpoint}/DeleteListItem/`, {
         method: 'DELETE',
+        headers:{
+            'authorization':API_KEY,
+            'Content-Type': 'application/json',
+        },
     });
     const taskElement = document.getElementById(`task-${taskId}`);
     const listElement = document.getElementById(`list-${listId}`);
