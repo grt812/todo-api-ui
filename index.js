@@ -9,6 +9,7 @@ addListElement.addEventListener("click", function(){
 const listContainerElement = document.getElementById('list-container');
 const newListInputElement = document.getElementById('new-list-input');
 
+//Get all items from server
 async function fetchLists() {
     try {
         const response = await fetch(endpoint+'/GetLists', {headers:{"authorization":"4b07c4ccaf003eb706298571326bda19"}});
@@ -19,6 +20,7 @@ async function fetchLists() {
     }
 }
 
+//Modifies DOM and sends post request
 async function addList() {
     const title = newListInputElement.value.trim();
     if (title) {
@@ -39,6 +41,7 @@ async function addList() {
     }
 }
 
+//Modifies DOM and sends delete request
 async function deleteList(listIdParam) {
     try {
     await fetch(`${endpoint}/DeleteList` + new URLSearchParams({
@@ -53,6 +56,8 @@ async function deleteList(listIdParam) {
     }
 }
 
+
+//Only renders each list
 function renderLists(lists) {
     listContainerElement.innerHTML = '';
     lists.forEach(renderList);
@@ -68,6 +73,7 @@ const listHTML = `
 </div>
 `;
 
+//Renders list
 function renderList(list) {
     let tempHTML = `
     <div id="list-${list.id}" class="list">
@@ -88,6 +94,7 @@ function renderList(list) {
 
 }
 
+//Only renders
 function createTaskElement(task, listId) {
     let tempHTML = `
     <div id="task-${task.id}" class="item ${task.completed ? "completed":""}">
@@ -106,41 +113,43 @@ function createTaskElement(task, listId) {
 
 }
 
-async function addTask(listId) {
+async function addTask(listIdParam) {
     const taskInput = document.getElementById(`newTaskInput-${listId}`);
     const description = taskInput.value.trim();
     if (description) {
-    try {
-        const response = await fetch(`/api/lists/${listId}/tasks`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ description }),
-        });
-        const newTask = await response.json();
-        const listElement = document.getElementById(`list-${listId}`);
-        const taskList = listElement.querySelector('ul');
-        const taskElement = createTaskElement(newTask, listId);
-        taskList.appendChild(taskElement);
-        taskInput.value = '';
-    } catch (error) {
-        console.error('Error adding task:', error);
-    }
+        try {
+            const response = await fetch(`${endpoint}/AddListItem/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: {
+                listId: listIdParam,
+                itemName: taskInput.value
+            },
+            });
+            const newTask = await response.json();
+            // const listElement = document.getElementById(`list-${listId}`);
+            // const taskList = listElement.querySelector('ul');
+            createTaskElement(newTask, listId);
+            taskInput.value = '';
+        } catch (error) {
+            console.error('Error adding task:', error);
+        }
     }
 }
 
 async function updateTask(listId, taskId, completed) {
     try {
-    await fetch(`/api/lists/${listId}/tasks/${taskId}`, {
-        method: 'PUT',
-        headers:{"authorization":"4b07c4ccaf003eb706298571326bda19"},
-        body: JSON.stringify({ completed }),
-    });
-    const taskElement = document.getElementById(`task-${taskId}`);
-    taskElement.classList.toggle('completed', completed);
+        await fetch(`${endpoint}/${listId}/tasks/${taskId}`, {
+            method: 'PUT',
+            headers:{"authorization":"4b07c4ccaf003eb706298571326bda19"},
+            body: JSON.stringify({ completed }),
+        });
+        const taskElement = document.getElementById(`task-${taskId}`);
+        taskElement.classList.toggle('completed', completed);
     } catch (error) {
-    console.error('Error updating task:', error);
+        console.error('Error updating task:', error);
     }
 }
 
