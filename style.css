@@ -24,6 +24,17 @@
     }
 }
 
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+}
+
 h1, h2, h3, h4, h5, h6{
     font-weight: normal;
 }
@@ -37,7 +48,11 @@ html, body{
 .list{
     padding: 10px 50px;
     border-radius: 5px;
-    animation: 0.5s ease-out fadeIn;
+    animation: 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000) fadeIn;
+}
+
+.list.fadeOut{
+    animation: 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000) fadeOut;
 }
 
 
@@ -80,7 +95,11 @@ button:active{
     border-radius: 10px;
     margin: 10px;
     display: flex;
-    animation: 0.5s ease-out fadeIn;
+    animation: 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000) fadeIn;
+}
+
+.item.fadeOut{
+    animation: 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000) fadeOut;
 }
 
 .item.completed{

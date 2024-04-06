@@ -113,7 +113,10 @@ async function deleteList(listIdParam) {
         }
     });
     const listElement = document.getElementById(`list-${listIdParam}`);
-    listElement.remove();
+    listElement.classList.add("fadeOut");
+    setTimeout(function(){
+        listElement.remove();
+    }, 500);
     } catch (error) {
     console.error('Error deleting list:', error);
     }
@@ -318,7 +321,10 @@ async function deleteTask(taskId) {
             },
         });
         const taskElement = document.getElementById(`task-${taskId}`);
-        taskElement.remove();
+        taskElement.classList.add("fadeOut");
+        setTimeout(function(){
+            taskElement.remove();
+        }, 500);
     } catch (error) {
         console.error('Error deleting task:', error);
     }
