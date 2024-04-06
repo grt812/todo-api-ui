@@ -244,7 +244,7 @@ function createTaskElement(task, listId) {
 
 }
 
-//Adds task through /AddListItem post endpoint
+//Adds task through /AddListItem POST endpoint
 async function addTask(listIdParam) {
     const taskInput = document.getElementById(`task-input-${listIdParam}`);
     const description = taskInput.value.trim();
