@@ -38,6 +38,7 @@ async function fetchLists() {
         let lists = [];
         const getListResponse = await loopRequest("");
         async function loopRequest(newToken){
+            //Query parameters include the next token if it is available form the previous request
             const response = await fetch(`${endpoint}/GetLists/` + (newToken !== "" ? "?"+new URLSearchParams({
                 nextToken: newToken
             }) :""), {
@@ -48,16 +49,13 @@ async function fetchLists() {
                 }
             });
             const newLists = await response.json();
-            console.log("new LISTS to add: "+ JSON.stringify(newLists));
             if(newLists.status == "200"){
                 lists = lists.concat(newLists.lists);
             }
-            console.log("LISTS iteration: " + JSON.stringify(lists));
 
             if (newLists.nextToken && newLists.nextToken !== "NULL" ){
                 return loopRequest(newLists.nextToken);
             } else {
-                console.log(newLists.nextToken);
                 return lists;
             }
         };
@@ -83,9 +81,8 @@ async function addList() {
                 })
             });
             const newList = await response.json();
-            //Resync lists since its easier to do that
+            //Render list if successful
             if(newList.status == "200"){
-                console.log(JSON.stringify(newList));
                 renderList({
                     id: newList.list.listId,
                     listName: newList.list.listName,
@@ -123,7 +120,6 @@ async function deleteList(listIdParam) {
 
 //Renders each list given an array of list objects
 async function renderLists(lists) {
-    console.log("render lists: "+JSON.stringify(lists));
     //To preserve the sequence of lists, use for loop instead of forEach (which would run functions in parallel)
     let listItems;
     for (const e of lists){
@@ -146,6 +142,7 @@ async function getListItems(listIdParam){
         const getListResponse = await loopRequest("");
 
         async function loopRequest(newToken){
+            //Query parameters include the next token if it is available form the previous request
             const response = await fetch(`${endpoint}/GetListItems/?` + (newToken !== "" ? new URLSearchParams({
                 listId: listIdParam,
                 nextToken: newToken
@@ -158,29 +155,22 @@ async function getListItems(listIdParam){
                     'Content-Type': 'application/json',
                 }
             });
-            console.log("getting list "+ listIdParam);
             const newItems = await response.json();
-            console.log("new items to add: "+ JSON.stringify(newItems));
             if(newItems.status == "200"){
                 listItems = listItems.concat(newItems.listItems);
             }
-            console.log("list item iteration: " + JSON.stringify(listItems));
 
             if (newItems.nextToken && newItems.nextToken !== "NULL" ){
                 return loopRequest(newItems.nextToken);
             } else {
-                console.log("token:" + newItems.nextToken);
                 return listItems;
             }
         }
-
-        console.log("list items returned: " + JSON.stringify(getListResponse));
         
         return getListResponse;
     } catch (error) {
         console.error('Error getting list items:', error);
     }
-    console.log("Returning null");
     return null;
 }
 
@@ -215,8 +205,6 @@ function renderList(list) {
     document.getElementById(`task-input-${list.id}`).onchange = () => addTask(list.id);
     
     list.items.forEach(task => {
-        console.log("task: ");
-        console.log(task);
         createTaskElement(task, list.id);
     });
 
@@ -224,7 +212,6 @@ function renderList(list) {
 
 //Renders each to-do task
 function createTaskElement(task, listId) {
-    console.log("rendering current task: " + JSON.stringify(task));
     let tempHTML = `
     <div id="task-${task.id}" class="item${task.checked ? " completed":""}">
         <label class="checkbox-label">
@@ -238,14 +225,13 @@ function createTaskElement(task, listId) {
 
     document.getElementById("list-"+listId).querySelector(".item-list").insertAdjacentHTML("beforebegin", tempHTML);
     document.getElementById(`input-${task.id}`).onchange = (e) => {
-        renameTask(listId, task.id, document.getElementById(`input-${task.id}`).value);
+        renameTask(task.id, document.getElementById(`input-${task.id}`).value);
     };
     document.getElementById(`checkbox-${task.id}`).onchange = function(e){
-        console.log("this value: "+e.target.checked);
         document.getElementById(`task-${task.id}`).classList.toggle('completed', e.target.checked);
-        setCheckedTask(listId, task.id, e.target.checked);
+        setCheckedTask(task.id, e.target.checked);
     };
-    document.getElementById(`delete-${task.id}`).onclick = () => deleteTask(listId, task.id);
+    document.getElementById(`delete-${task.id}`).onclick = () => deleteTask(task.id);
 
 }
 
@@ -253,7 +239,6 @@ function createTaskElement(task, listId) {
 async function addTask(listIdParam) {
     const taskInput = document.getElementById(`task-input-${listIdParam}`);
     const description = taskInput.value.trim();
-    console.log("adding current text: " + description);
     if (description) {
         try {
             const response = await fetch(`${endpoint}/AddListItem/`, {
@@ -277,10 +262,8 @@ async function addTask(listIdParam) {
 }
 
 //Rename task through /RenameItem/ PATCH endpoint
-async function renameTask(listId, thisItemId, newName) {
+async function renameTask(thisItemId, newName) {
     try {
-        console.log(thisItemId);
-        console.log(newName);
         await fetch(`${endpoint}/RenameItem/?${new URLSearchParams({
             itemId: thisItemId,
             newItemName: newName
@@ -297,11 +280,8 @@ async function renameTask(listId, thisItemId, newName) {
 }
 
 //Set checked task through /SetChecked/ PATCH endpoint
-async function setCheckedTask(listId, thisItemId, newChecked) {
+async function setCheckedTask(thisItemId, newChecked) {
     try {
-        console.log(thisItemId);
-        console.log(newChecked);
-        
         const response = await fetch(`${endpoint}/SetChecked/?${new URLSearchParams({
             itemId: thisItemId,
             checked: newChecked
@@ -318,7 +298,7 @@ async function setCheckedTask(listId, thisItemId, newChecked) {
 }
 
 //Deletes task through /DeleteListItem/ DELETE endpoint
-async function deleteTask(listIdParam, taskId) {
+async function deleteTask(taskId) {
     try {
         await fetch(`${endpoint}/DeleteListItem/?${new URLSearchParams({
             itemId: taskId,
