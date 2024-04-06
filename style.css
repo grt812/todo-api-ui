@@ -1,0 +1,137 @@
+:root{
+    --bg-color: rgb(20, 20, 20);
+    --fg-color: rgb(40, 40, 40);
+    --accent-color: rgb(255, 20, 40);
+    --accent-hover-color: rgb(230, 20, 40);
+    --accent-active-color: rgb(200, 20, 40)
+}
+
+*{
+    font-family: arial;
+    color: white;
+    box-sizing: border-box;
+    transition: all 0.25s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+h1, h2, h3, h4, h5, h6{
+    font-weight: normal;
+}
+
+html, body{
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+}
+
+.list{
+    padding: 10px 50px;
+    border-radius: 5px;
+    animation: 0.5s ease-out fadeIn;
+}
+
+
+#list-menu{
+    padding: 10px;
+    border-radius: 5px;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    background-color: var(--fg-color);
+    display: flex;
+}
+
+#status{
+    flex-grow: 1;
+    text-align: right;
+    vertical-align: middle;
+}
+
+button{
+    border-radius: 50px;
+    padding: 10px;
+    border: 0;
+    background-color: var(--accent-color);
+    cursor: pointer;
+}
+
+button:hover{
+    background-color: var(--accent-hover-color);
+}
+
+button:active{
+    background-color: var(--accent-active-color);
+}
+
+.item{
+    background-color: var(--fg-color);
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px;
+    display: flex;
+    animation: 0.5s ease-out fadeIn;
+}
+
+.item.completed{
+    opacity: 0.5;
+}
+
+.item.completed:hover{
+    opacity: 0.8;
+}
+
+.item.completed input{
+    text-decoration: line-through;
+}
+
+.task-input{
+    flex-grow: 1;
+}
+
+.text-input{
+    background-color: transparent;
+    border: 0;
+    border-bottom: 1px solid white;
+}
+
+label input[type="checkbox"]{
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+label .checkbox-display{
+    display: block;
+}
+
+label .checkbox-display::after{
+    content: "";
+    display: block;
+    width: 15px;
+    height: 15px;
+    border: 1px solid white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+label input:checked ~ .checkbox-display::after{
+    content: "✓";
+    /* width: 10px;
+    height: 10px;
+    border: 1px solid white;
+    padding: 5px;
+    border-radius: 5px; */
+}
