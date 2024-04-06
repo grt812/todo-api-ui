@@ -27,12 +27,14 @@ addListElement.addEventListener("click", function(){
     addList();
 });
 
-newListInputElement.onchange = function(){
-    addList();
+newListInputElement.onkeydown = function(e){
+    if(e.key === "Enter"){
+        addList();
+    }
 };
 
 
-//Get all items from server and run the render function
+//Get all items from server and runs the renderLists function
 async function fetchLists() {
     try {
         let lists = [];
@@ -65,7 +67,7 @@ async function fetchLists() {
     }
 }
 
-//Adds list through /AddList POST endpoint
+//Adds list through /AddList POST endpoint. 
 async function addList() {
     const title = newListInputElement.value.trim();
     if (title) {
@@ -84,7 +86,7 @@ async function addList() {
             //Render list if successful
             if(newList.status == "200"){
                 renderList({
-                    id: newList.list.listId,
+                    id: newList.list.id,
                     listName: newList.list.listName,
                     items: []
                 });
@@ -199,10 +201,14 @@ function renderList(list) {
     let loadingEl=document.getElementById('loading');
     if(loadingEl!==null) loadingEl.remove();
 
-    document.getElementById("list-container").insertAdjacentHTML("beforeend", tempHTML);
+    document.getElementById("list-container").insertAdjacentHTML("afterbegin", tempHTML);
     document.getElementById(`delete-list-${list.id}`).onclick = () => deleteList(list.id);
     document.getElementById(`add-items-${list.id}`).onclick = () => addTask(list.id);
-    document.getElementById(`task-input-${list.id}`).onchange = () => addTask(list.id);
+    document.getElementById(`task-input-${list.id}`).onkeydown = (e) => { 
+        if(e.key === "Enter"){
+            addTask(list.id)
+        }
+    };
     
     list.items.forEach(task => {
         createTaskElement(task, list.id);
@@ -223,7 +229,7 @@ function createTaskElement(task, listId) {
     </div>
     `;
 
-    document.getElementById("list-"+listId).querySelector(".item-list").insertAdjacentHTML("beforebegin", tempHTML);
+    document.getElementById("list-"+listId).querySelector(".item-list").insertAdjacentHTML("afterbegin", tempHTML);
     document.getElementById(`input-${task.id}`).onchange = (e) => {
         renameTask(task.id, document.getElementById(`input-${task.id}`).value);
     };
@@ -253,7 +259,9 @@ async function addTask(listIdParam) {
                 })
             });
             const newTask = await response.json();
-            createTaskElement(newTask.listItem, listIdParam);
+            if(newTask.status == "200"){
+                createTaskElement(newTask.listItem, listIdParam);
+            }
             taskInput.value = '';
         } catch (error) {
             console.error('Error adding task:', error);
